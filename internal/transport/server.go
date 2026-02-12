@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 )
@@ -27,20 +28,27 @@ func StartServer() {
 
 func handleClient(conn net.Conn) {
 	defer conn.Close()
+
 	remoteIp := conn.RemoteAddr().String()
 	fmt.Printf("Cliente conectado: %s\n", remoteIp)
 
-	buffer := make([]byte, 1024)
+	decoder := json.NewDecoder(conn)
 
 	for {
-		n, err := conn.Read(buffer)
+		var msg Packet
+
+		err := decoder.Decode(&msg)
 		if err != nil {
-			if err.Error() != "EOF" {
-				fmt.Printf("Desconectado (%s): %v\n", remoteIp, err)
-			}
 			return
 		}
-		fmt.Printf("Recebido de %s: %s\n", remoteIp, buffer[:n])
+
+		switch msg.Type {
+		case MsgHandshake:
+			var data HandshakePayload
+			json.Unmarshal([]byte(msg.Payload), &data)
+
+			fmt.Printf("Recebi um handshake! Usuário %s querendo vault %s\n", data.DeviceId,  data.VaultID)
+		}
 	}
 }
 
@@ -62,9 +70,9 @@ func StartDiscoveryListner() {
 
 		message := string(buffer[:n])
 
-		if message == "ORBIT" {
+		if message == DISCOVERY_MAGIC_REQ {
 			fmt.Printf("Peer encontrado via UDP: %s\n", remoteAddr.IP.String())
-			_, err := conn.WriteToUDP([]byte("ORBIT HERE"), remoteAddr)
+			_, err := conn.WriteToUDP([]byte(DISCOVERY_MAGIC_RES), remoteAddr)
 			if err != nil {
 				fmt.Printf("Erro ao responder UDP: %v\n", err)
 			}

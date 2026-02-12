@@ -3,12 +3,21 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"orbit/internal/config"
 	"orbit/internal/transport"
 	"os"
 )
 
 func main() {
+	globalConfig, err := config.LoadGlobal()
+	if err != nil {
+		log.Fatalf("Não foi possível carregar as configurações: %v\n", err)
+		return
+	}
+
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
+	joinCmd := flag.NewFlagSet("join", flag.ExitOnError)
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
 
 	switch os.Args[1] {
@@ -18,9 +27,17 @@ func main() {
 		select {}
 
 	case "join":
+		if len(os.Args) < 3 {
+			fmt.Println("Informe o ID do vault!")
+			return;
+		}
+
+		joinCmd.Parse(os.Args[2:])
+		vault := joinCmd.Arg(0)
+
 		ip := transport.FindPeers()
 		if ip != "" {
-			transport.Connect(ip, []byte("Hello World"))
+			transport.Connect(ip, globalConfig.DeviceID, vault)
 		}
 
 	case "list":
