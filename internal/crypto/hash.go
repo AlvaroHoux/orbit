@@ -1,14 +1,13 @@
-package main
+package crypto
 
 import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"io"
-	"os"
 )
 
-func hashString (alvo string) (string, error){
+func HashString (alvo string) (string, error){
 	if alvo == "" {
 		return "", fmt.Errorf("alvo vazio")
 	} 
