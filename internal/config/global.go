@@ -17,6 +17,24 @@ type Vault struct {
 	Path string `json:"path"`
 }
 
+func SaveConfig(configChanges GlobalConfig) error {
+	configPath, err := getHomePath()
+	if err != nil {
+		return err
+	}
+
+	configData, err := json.Marshal(configChanges)
+	if err != nil {
+		return nil
+	}
+
+	if err := os.WriteFile(configPath, []byte(configData), 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
+
 // LoadGlobal tenta carregar. Se não existir, cria e retorna o padrão
 func LoadGlobal() (*GlobalConfig, error) {
 	configPath, err := getHomePath()
