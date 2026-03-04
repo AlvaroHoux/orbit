@@ -14,7 +14,9 @@ type GlobalConfig struct {
 
 type Vault struct {
 	Id string `json:"id"`
+	Name string `json:"name"`
 	Path string `json:"path"`
+	Active bool `json:"active"`
 }
 
 func SaveConfig(configChanges GlobalConfig) error {
