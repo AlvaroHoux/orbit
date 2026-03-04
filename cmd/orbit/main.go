@@ -1,11 +1,9 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"orbit/internal/config"
-	"orbit/internal/transport"
 	"os"
 )
 
@@ -16,37 +14,25 @@ func main() {
 		return
 	}
 
-	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
-	joinCmd := flag.NewFlagSet("join", flag.ExitOnError)
-	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+	if len(os.Args) < 2 {
+		fmt.Println("Uso: orbit [serve|join|add|list]")
+		os.Exit(1)
+	}
 
-	switch os.Args[1] {
+	command := os.Args[1]
+	args := os.Args[2:]
+
+	switch command {
 	case "serve":
-		go transport.StartServer()
-		go transport.StartDiscoveryListner()
-		select {}
-
+		runServe(args) 
 	case "join":
-		if len(os.Args) < 3 {
-			fmt.Println("Informe o ID do vault!")
-			return;
-		}
-
-		joinCmd.Parse(os.Args[2:])
-		vault := joinCmd.Arg(0)
-
-		ip := transport.FindPeers()
-		if ip != "" {
-			transport.Connect(ip, globalConfig.DeviceID, vault)
-		}
-
+		runJoin(args, *globalConfig) 
 	case "list":
-		listCmd.Parse(os.Args[2:])
-		fmt.Println("Mostrando todos os cofres em orbita")
-
+		runList(args)
 	case "add":
-		addCmd.Parse(os.Args[2:])
-		args := addCmd.Args()
-		fmt.Println(args[0])
+		runAdd(args)
+	default:
+		fmt.Println("Comando desconhecido.")
+		os.Exit(1)
 	}
 }
