@@ -91,10 +91,10 @@ func createDefaultConfig(configPath string) (*GlobalConfig, error) {
 }
 
 func getHomePath() (string, error) {
-	home, err := os.UserHomeDir()
+	home, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
 
-	return filepath.Join(home, ".orbit", "registry.json"), nil
+	return filepath.Join(home, "orbit", "registry.json"), nil
 }
