@@ -34,6 +34,8 @@ func runToggleVault(args []string, globalConfig config.GlobalConfig, active bool
 	}
 
 	newGlobalConfig := globalConfig
+	saveChanges := false
+	vaultFound := false
 
 	for i, vault := range newGlobalConfig.Vaults {
 		if (name != "" && vault.Name == name) || (id != "" && vault.Id == id) {
@@ -41,12 +43,23 @@ func runToggleVault(args []string, globalConfig config.GlobalConfig, active bool
 			fmt.Printf("ID: %s | Nome: %s | Caminho: %s\n", vault.Id, vault.Name, vault.Path)
 
 			if vault.Active != active {
+				saveChanges = true
+				vaultFound = true
 				newGlobalConfig.Vaults[i].Active = active
 				fmt.Println(currentMessage[1])
+				break
 			} else {
 				fmt.Println(currentMessage[2])
 			}
 		}
+	}
+
+	if !vaultFound {
+		fmt.Println("Vault não encontrado")
+	}
+
+	if !saveChanges {
+		return
 	}
 
 	if err := config.SaveConfig(newGlobalConfig); err != nil {
