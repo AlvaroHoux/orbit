@@ -24,9 +24,13 @@ func main() {
 
 	switch command {
 	case "serve":
-		runServe(args) 
+		runServe(args)
 	case "join":
-		runJoin(args, *globalConfig) 
+		runJoin(args, *globalConfig)
+	case "stop":
+		runToggleVault(args, *globalConfig, false)
+	case "start":
+		runToggleVault(args, *globalConfig, true)	
 	case "list":
 		runList(args)
 	case "add":
