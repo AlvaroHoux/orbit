@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 	"encoding/json"
 )
@@ -68,13 +69,23 @@ func createDefaultConfig(configPath string) (*GlobalConfig, error) {
 		return nil, err
 	}
 
+	var username string
+
+	currentUser, err := user.Current()
+	if err != nil {
+		username = "unknown-user"
+	} else {
+		username = currentUser.Username
+	}
+
+
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "unknown-device"
 	}
 
 	defaultConfig := GlobalConfig{
-		DeviceID: hostname,
+		DeviceID: username + "@" + hostname,
 		Vaults: []Vault{},
 	}
 
