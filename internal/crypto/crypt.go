@@ -2,72 +2,64 @@ package crypto
 
 import (
 	"crypto/aes"
-    "crypto/cipher"
-    "crypto/rand"
-    "crypto/sha256"
-    "io"
+	"crypto/cipher"
+	"crypto/rand"
 	"fmt"
+	"io"
 )
 
-func encryptString(fonte string, senha string) ([]byte, error) {
-	if senha == "" {
-		return nil, fmt.Errorf("senha vazia")
+func Encrypt(plaintext []byte, key []byte) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, fmt.Errorf("a chave deve ter exatamente 32 bytes")
 	}
-	
-	key := sha256.Sum256([]byte(senha))
-	block, err := aes.NewCipher(key[:])
-	
+
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		return nil, err
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
-	_, err = io.ReadFull(rand.Reader, nonce)
-	if err != nil{return nil, err}
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
+	}
 
-	plaintext := []byte(fonte)
-	
 	ciphertext := gcm.Seal(nonce, nonce, plaintext, nil)
 
 	return ciphertext, nil
-
 }
 
-func decryptString(ciphertext []byte, senha string) (string, error) {
-	if senha == ""{
-		return "", fmt.Errorf("senha vazia")
+func Decrypt(ciphertext []byte, key []byte) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, fmt.Errorf("a chave deve ter exatamente 32 bytes")
 	}
 
-	key := sha256.Sum256([]byte(senha))
-	block, err := aes.NewCipher(key[:])
-	
+	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	
+
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	nonceSize := gcm.NonceSize()
-	if len(ciphertext) < gcm.NonceSize(){
-		return "", fmt.Errorf("tamanho incorreto do ciphertext")
+	if len(ciphertext) < nonceSize {
+		return nil, fmt.Errorf("tamanho incorreto do ciphertext")
 	}
 
 	extractedNonce := ciphertext[:nonceSize]
-
 	ciphertextReal := ciphertext[nonceSize:]
 
 	plaintextBytes, err := gcm.Open(nil, extractedNonce, ciphertextReal, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	
-	return string(plaintextBytes), nil
+
+	return plaintextBytes, nil
 }
